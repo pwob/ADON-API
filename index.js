@@ -13,17 +13,20 @@ class RestHapiServer extends EventEmitter {
 
 	constructor() {
 		super();
-
-		//initiate server instance
-		_hapi = new Hapi.Server();
-		this.hapi = _hapi;
+		let dotenv_result;
+		//get configurations
 		if (_.get(config.server, 'env_path')) {
 			const env_path = _.get(config.server, 'env_path');
 			console.log('[ENV] Loading config path from ' + env_path);
-			require('dotenv').config({ path: env_path }); //load .env file
+			dotenv_result = require('dotenv').config({ path: env_path }); //load specific .env file
+			if (!dotenv_result || dotenv_result.error) {
+				console.error('[ENV] Error occured! cannot load env file at "' + env_path + '". ' +
+					'Please make sure it points to the specific file');
+				process.exit(1);
+			}
 		} else {
 			console.log('[ENV] Loading config path from root project folder');
-			require('dotenv').config();
+			dotenv_result = require('dotenv').config();
 		}
 		//set logger level
 		_logger = new Logger(process.env.LOGGING_LEVEL || 'info');
@@ -44,11 +47,18 @@ class RestHapiServer extends EventEmitter {
 			host_url = url.parse(process.env.API_SERVER_HOST_URL);
 		}
 
-		_hapi.connection({
-			address: host_url.hostName,
-			host: host_url.hostName,
-			port: host_url.port
-		});
+		const hapi_config = {
+			host: 'localhost',
+			port: 8000
+		};
+		if (host_url.hostName) {
+			hapi_config.host = host_url.hostName;
+		}
+		if (host_url.port) { hapi_config.port = host_url.port; }
+
+		//initiate server instance
+		_hapi = new Hapi.Server(hapi_config);
+		this.hapi = _hapi;
 
 		_plugins = require('./plugin-manager')(this);
 		_routes = require('./route-manager')(this);
