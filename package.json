@@ -1,6 +1,6 @@
 {
   "name": "adon-api",
-  "version": "1.3.1",
+  "version": "1.3.0",
   "author": "Adonis Lee Villamor <adonisv79@gmail.com> (http://www.bytecommander.com)",
   "description": "HAPI Service customized for using best practices like config, dotenv, promises and intel logging. It prioritizes configuration over code",
   "keywords": [
